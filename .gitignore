@@ -353,3 +353,20 @@ fabric.properties
 /.vs
 /EasyYoloOcr/.vs
 /EasyYoloOcr/EasyYoloOcr.Example.Wpf/bin/Debug/net8.0-windows/tessdata
+
+# .NET / Visual Studio ------------------------------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.nupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+*.nuget.props
+*.nuget.targets

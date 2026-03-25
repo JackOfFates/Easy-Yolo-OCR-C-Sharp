@@ -1,0 +1,6 @@
+images: image
+
+detection: weights/example.onnx
+detection-size: 640
+detection-confidence: 0.25
+detection-iou: 0.25

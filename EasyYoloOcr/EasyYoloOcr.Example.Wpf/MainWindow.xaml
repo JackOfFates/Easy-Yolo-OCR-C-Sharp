@@ -1,0 +1,40 @@
+<Window x:Class="EasyYoloOcr.Example.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Easy YOLO OCR - Screen Reader"
+        Height="780" Width="1024"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="180"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <Button x:Name="StartStopButton" Content="Start Capture"
+                    Click="StartStopButton_Click" Padding="16,6" FontSize="14"/>
+            <TextBlock x:Name="FpsLabel" VerticalAlignment="Center"
+                       Margin="16,0,0,0" FontSize="13" Foreground="Gray"/>
+        </StackPanel>
+
+        <!-- Screen preview -->
+        <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="1" Background="Black">
+            <Image x:Name="ScreenImage" Stretch="Uniform"/>
+        </Border>
+
+        <!-- Separator -->
+        <TextBlock Grid.Row="2" Text="Detected Text:" FontWeight="SemiBold"
+                   FontSize="14" Margin="0,8,0,4"/>
+
+        <!-- OCR output -->
+        <Border Grid.Row="3" BorderBrush="DarkGray" BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="OcrTextLabel" TextWrapping="Wrap"
+                           FontSize="13" FontFamily="Consolas" Padding="8"/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

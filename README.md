@@ -1,166 +1,141 @@
-# Easy Yolo OCR
+# Easy YOLO OCR — C#
 
-![issue badge](https://img.shields.io/github/license/aqntks/recog)
-![issue badge](https://img.shields.io/badge/build-passing-brightgreen)
-![issue badge](https://img.shields.io/badge/%EB%8B%A4%EA%B5%AD%EC%96%B4-%EC%A7%80%EC%9B%90-yellow)
-[![LinkedIn Badge](http://img.shields.io/badge/LinkedIn-@InpyoHong-0072b1?style=flat&logo=linkedin&link=https://www.linkedin.com/in/inpyo-hong-886781212/)](https://www.linkedin.com/in/inpyo-hong-886781212/)
+![Easy YOLO OCR Screenshot](docs/screenshot.png)
 
-[[Korean README]](https://github.com/aqntks/Easy-Yolo-OCR/blob/master/README_KOR.md)
+A real-time screen reader and OCR toolkit for .NET 8, combining **YOLO object detection** (via ONNX Runtime) with **Tesseract OCR** and **GPU-accelerated screen capture** (DXGI Desktop Duplication). Ported from the original [Python Easy-Yolo-OCR](https://github.com/JackOfFates/Easy-Yolo-OCR) project.
 
-Proceed with text detection only in the selected area
+---
 
-This repository is a project using [yolov8](https://github.com/ultralytics/ultralytics) & [yolov5](https://github.com/ultralytics/yolov5) and [EasyOCR](https://github.com/JaidedAI/EasyOCR).
+## Features
 
-## Introduction
+- **Real-time screen capture** — GPU-accelerated via DXGI Desktop Duplication with zero GDI overhead
+- **Live OCR overlay** — detected text is highlighted with red bounding boxes and labels directly on the preview
+- **Self-aware masking** — automatically blacks out its own window so it never reads its own UI
+- **Foreground window focus** — prioritizes OCR on the active foreground window for faster, more relevant results
+- **YOLO + OCR pipeline** — run YOLOv5 ONNX models to detect regions of interest, then OCR the detected areas
+- **MRZ / document support** — built-in correction utilities for nationality codes, MRZ fields, and gender characters
+- **YAML configuration** — configurable detection model path, image size, confidence, and IOU thresholds
+- **Multi-language OCR** — supports any Tesseract language pack (e.g. `eng`, `kor`, `eng+kor`)
 
-The existing OCR (Optical character recognition) process involves detecting the text regions using a Text Detection model and then recognizing the text using a Text Recognition model. This OCR model is effective in recognizing the entire text within desired documents or images.   
+## Architecture
 
-However, if you want to detect only the characters in a specific area within an image or document, it detects unnecessary areas too, so the detection speed takes a long time and it is inconvenient to process the result value.
-
-To address this issue and cater to those who want to detect only specific patterns or regions of text in various images, we propose Easy Yolo OCR.
-
-Easy Yolo OCR replaces the Text Detection model used for text region detection with an Object Detection model commonly used in object detection tasks. Train your own custom Detection model and detect only the desired regions in the desired format.
-
-The Object Detection model utilizes [yolov8](https://github.com/ultralytics/ultralytics) & [yolov5](https://github.com/ultralytics/yolov5), which is widely employed in real-time object detection. The OCR process is benchmarked against [EasyOCR](https://github.com/JaidedAI/EasyOCR) and the Text Recognition model is trained using the [deep-text-recognition-benchmark](https://github.com/clovaai/deep-text-recognition-benchmark) by Clova AI Research.
-
-- Existing OCR process
-
-![](res/original.jpg)
-
-- Easy Yolo OCR process
-
-![](res/easyyoloocr.jpg)
-
-
-## Installation
-
-
-``` bash
-$ git clone https://github.com/aqntks/Easy-Yolo-OCR
-$ cd Easy-Yolo-OCR
-$ pip install -r requirements.txt
+```
+Easy-Yolo-OCR-C-Sharp/
+??? EasyYoloOcr/                    # Core library (.NET 8)
+?   ??? Core/
+?   ?   ??? OcrEngine.cs            # Tesseract OCR engine with bounding box support
+?   ?   ??? YoloDetector.cs         # YOLO inference via ONNX Runtime
+?   ?   ??? Scanner.cs              # Detection + OCR pipeline
+?   ?   ??? ImagePack.cs            # Image loading, preprocessing, resizing
+?   ?   ??? Detection.cs            # Detection result model
+?   ?   ??? ScanResult.cs           # Combined detection + OCR result
+?   ?   ??? Correction.cs           # MRZ / nationality / text correction
+?   ?   ??? DataHandler.cs          # Data I/O utilities
+?   ?   ??? Util.cs                 # NMS, box math, helpers
+?   ??? AppConfig.cs                # YAML configuration loader
+?
+??? EasyYoloOcr.Example.Wpf/       # WPF demo app (.NET 8 / Windows)
+    ??? MainWindow.xaml/.cs         # Real-time screen reader with overlay
+    ??? ScreenCapture.cs            # DXGI Desktop Duplication capture
+    ??? tessdata/                   # Tesseract trained data files
 ```
 
-## OCR
+## Tech Stack
+
+| Component | Library | Version |
+|---|---|---|
+| Runtime | .NET | 8.0 |
+| Object Detection | Microsoft.ML.OnnxRuntime | 1.17.1 |
+| Computer Vision | OpenCvSharp4 | 4.9+ |
+| OCR | Tesseract (via Tesseract.NET) | 5.2.0 |
+| Screen Capture | Vortice.Direct3D11 / DXGI | 3.8.3 |
+| Configuration | YamlDotNet | 15.1.2 |
+| UI | WPF | .NET 8 |
+
+## Getting Started
+
+### Prerequisites
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Windows 10/11 (required for DXGI Desktop Duplication)
+- A GPU with DirectX 11+ support
+
+### Clone & Build
 
 ```bash
-$ python main.py --gpu 0 --lang en/ko
-$ python main.py --gpu 0 --lang en
-$ python main.py --gpu -1 --lang ko         # --gpu -1 : cpu mode
+git clone https://github.com/JackOfFates/Easy-Yolo-OCR-C-Sharp.git
+cd Easy-Yolo-OCR-C-Sharp
+dotnet build
 ```
 
-## Prepare Training Data
-``` bash
-$ cd yolov5
-```
-### 1. Data location
-Place the image file(jpg, png ... etc) and labeling file(txt) in the "yolov5/dataset/custom_data" folder.
+### Tesseract Data
 
----yolov5/dataset\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ã„´---custom_data\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ã„´---image1.jpg\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---image1.txt\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---image2.jpg\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---image2.txt\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---image3.jpg\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---image3.txt
+The WPF example includes tessdata files that are copied to the output automatically. If you need additional languages, download trained data from [tesseract-ocr/tessdata](https://github.com/tesseract-ocr/tessdata) and place the `.traineddata` files in the `tessdata/` folder next to the executable.
 
-### 2. Configure labeling text(image.txt)
-(ClassIndex)&nbsp;&nbsp;(BoxCenterX[value 0-1])&nbsp;&nbsp;(BoxCenterY[value 0-1])&nbsp;&nbsp;(BoxWidth[value 0-1])&nbsp;&nbsp;(BoxHeight[value 0-1])\
-(ClassIndex)&nbsp;&nbsp;(BoxCenterX[value 0-1])&nbsp;&nbsp;(BoxCenterY[value 0-1])&nbsp;&nbsp;(BoxWidth[value 0-1])&nbsp;&nbsp;(BoxHeight[value 0-1])\
-(ClassIndex)&nbsp;&nbsp;(BoxCenterX[value 0-1])&nbsp;&nbsp;(BoxCenterY[value 0-1])&nbsp;&nbsp;(BoxWidth[value 0-1])&nbsp;&nbsp;(BoxHeight[value 0-1])\
-                         
-```bash
-# ex) image1.txt 
-
-0 0.6659722222222223 0.11302083333333333 0.4013888888888889 0.06770833333333333
-9 0.48333333333333334 0.12552083333333333 0.025 0.036458333333333336
-3 0.5145833333333334 0.1265625 0.02638888888888889 0.036458333333333336
-1 0.5479166666666667 0.125 0.0375 0.0375
-4 0.5798611111111112 0.125 0.029166666666666667 0.03333333333333333
-8 0.6145833333333334 0.12447916666666667 0.03194444444444445 0.03854166666666667
-4 0.6479166666666667 0.12395833333333334 0.03194444444444445 0.041666666666666664
-2 0.68125 0.12447916666666667 0.03194444444444445 0.03229166666666666
-3 0.7145833333333333 0.12395833333333334 0.03194444444444445 0.03125
-7 0.7465277777777778 0.12552083333333333 0.029166666666666667 0.034375
-0 0.78125 0.12239583333333333 0.03194444444444445 0.03229166666666666
-8 0.8104166666666667 0.125 0.029166666666666667 0.0375
-0 0.8423611111111111 0.12343749999999999 0.034722222222222224 0.036458333333333336
-```
-
-### 3. Create train, valid, test file
-yolov5/dataset/custom_train.txt\
-yolov5/dataset/custom_valid.txt\
-yolov5/dataset/custom_train_test.txt (optional)
+### Run the Screen Reader
 
 ```bash
-# ex) custom_train.txt
-
-dataset/custom_data/image001.jpg
-dataset/custom_data/image002.jpg
-dataset/custom_data/image003.jpg
-dataset/custom_data/image004.jpg
-              .
-              .
-              .
-```
-```bash
-# ex) custom_valid.txt
-
-dataset/custom_data/image101.jpg
-dataset/custom_data/image102.jpg
-dataset/custom_data/image103.jpg
-dataset/custom_data/image104.jpg
-              .
-              .
-              .
-```
-```bash
-# ex) custom_test.txt (optional)
-
-dataset/custom_data/image151.jpg
-dataset/custom_data/image152.jpg
-dataset/custom_data/image153.jpg
-dataset/custom_data/image154.jpg
-              .
-              .
-              .
+dotnet run --project EasyYoloOcr.Example.Wpf
 ```
 
-### 4. Write custom.yaml
-Create the data/custom.yaml file and write the following
+Click **Start Capture** to begin. The app will:
 
-```bash
-# custom.yaml
+1. Capture your screen at native resolution using DXGI
+2. Black out its own window area in the captured frame
+3. If another window is in the foreground, focus OCR on that window
+4. Draw **red bounding boxes** around every detected text line
+5. Show the recognized text as **black text on a red label** above each box
+6. Display all recognized text in the bottom panel
 
-path: ./dataset
-train: custom_train.txt
-val:  custom_valid.txt
-test:  custom_train_test.txt  # (optional)
+### Using the YOLO + OCR Pipeline
 
-nc: 10  # number of classes
-names: ['title', 'name', 'personal_id', 'text_box_1', 'text_box_2', 'price', 'address', 'age', 'date', 'count']  # class names
+For document scanning or custom detection workflows, use the core library directly:
+
+```csharp
+using EasyYoloOcr;
+using EasyYoloOcr.Core;
+
+// Load config
+var config = AppConfig.Load("config.yaml");
+
+// Initialize
+using var detector = new YoloDetector(config.Detection);
+using var ocr = new OcrEngine("eng");
+
+// Run detection + OCR on an image
+var results = Scanner.PtDetect(
+    "path/to/image.png",
+    detector,
+    ciou: 0.5f,
+    ocr,
+    imgSize: config.DetectionSize,
+    confidence: config.DetectionConfidence,
+    iou: config.DetectionIou
+);
+
+foreach (var result in results)
+{
+    Console.WriteLine($"[{result.Label}] {result.Text} (conf: {result.Confidence:P0})");
+}
 ```
 
-## Train Detection Model
+> **Note:** YOLO models must be exported to ONNX format. If you have a PyTorch `.pt` model, export it first:
+> ```bash
+> python yolov5/export.py --weights weights/example.pt --include onnx
+> ```
 
-```bash
-$ python train.py --data data/custom.yaml --weights yolov5s.pt --img 640 --batch-size 64 --epochs 300
-                                                    yolov5m.pt       960              40          100
-                                                    yolov5l.pt       480              24           50 
-                                                    yolov5x.pt       320              16           30 
+## Configuration
+
+Create a `config.yaml` file:
+
+```yaml
+images: image
+detection: weights/example.onnx
+detection-size: 640
+detection-confidence: 0.25
+detection-iou: 0.25
 ```
 
-## Setting Config
-```bash
-# config.yaml
+## License
 
-images: image                                # detection image folder
-
-detection: weights/example.pt                # trained detecting model
-detection-size: 640                          # Detection image size
-detection-confidence: 0.25                   # detecting confidence
-detection-iou: 0.45                          # detecting iou
-```
-
-
+See [LICENSE](LICENSE) for details.
