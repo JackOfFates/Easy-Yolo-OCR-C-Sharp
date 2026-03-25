@@ -76,7 +76,7 @@ public class OcrEngine : IDisposable
         byte[] imageBytes = crop.ToBytes(".bmp");
         using var pix = Pix.LoadFromMemory(imageBytes);
         using var page = _engine.Process(pix);
-        return page?.GetText()?.Trim();
+        return page?.GetText()?.Trim() ?? string.Empty;
     }
 
     /// <summary>
