@@ -350,3 +350,6 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+/.vs
+/EasyYoloOcr/.vs
+/EasyYoloOcr/EasyYoloOcr.Example.Wpf/bin/Debug/net8.0-windows/tessdata
